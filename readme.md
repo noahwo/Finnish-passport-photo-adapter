@@ -1,22 +1,25 @@
-# Passport photo generator
+# Passport Photo Generator
 
-Straighten and crop a photo into a passport photo according to the Finnish specifications.
+Straighten, scale, and crop a portrait into a Finnish-spec passport photo.
 
-## Requirement
+## Requirements
 
-PyQt6
+The app only needs a modern web browser.
 
-## Usage
 
-```console
-$ ./passportgen.py photo.jpg passport_photo.jpg
-Click your eye
-Click the other eye
-Click the top of your head
-Click the bottom of your head
-Done
-```
+## Quick Start
 
-## Copyright
+Open `passportgen.html` in a browser.
 
-Public domain
+## How It Works
+
+Use **Open Photo**, then click:
+
+1. one eye
+2. the other eye
+3. the top of the head
+4. the bottom of the chin
+
+The app straightens, scales, crops, and downloads a 500 x 653 pixel passport
+photo.
+
