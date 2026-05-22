@@ -1,7 +1,6 @@
 # Finnish Passport Photo Adapter
 
-Straighten, scale, and crop portraits to meet Finnish passport photo
-requirements in [Poliisin passikuvaohje](https://poliisi.fi/documents/25235045/31329600/Poliisin-passikuvaohje-2020-FI.pdf/d7709348-8248-09a0-8b74-7526e6ee2a5d?t=1600339651285), then arrange them on a printable photo sheet.
+Straighten, scale, and crop portraits to meet Finnish passport photo requirements in [Poliisin passikuvaohje](https://poliisi.fi/documents/25235045/31329600/Poliisin-passikuvaohje-2020-FI.pdf/d7709348-8248-09a0-8b74-7526e6ee2a5d?t=1600339651285), then arrange them on a printable photo sheet.
 
 ## Requirements
 
