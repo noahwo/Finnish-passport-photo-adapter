@@ -14,6 +14,8 @@
       --line: #d6dbe1;
       --accent: #0b66d8;
       --canvas: #25282d;
+      --ok: #16833a;
+      --side-panel-width: 320px;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -25,6 +27,7 @@
         --line: #373c44;
         --accent: #73a7ff;
         --canvas: #101214;
+        --ok: #60d082;
       }
     }
 
@@ -32,21 +35,34 @@
       box-sizing: border-box;
     }
 
+    html,
+    body {
+      height: 100%;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
+      overflow: hidden;
       background: var(--bg);
       color: var(--text);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       letter-spacing: 0;
     }
 
+    body.resizing-panel {
+      cursor: col-resize;
+      user-select: none;
+    }
+
     main {
-      min-height: 100vh;
+      height: 100vh;
+      min-height: 0;
       display: grid;
       grid-template-rows: auto auto 1fr;
       gap: 10px;
       padding: 12px;
+      overflow: hidden;
     }
 
     .toolbar {
@@ -57,7 +73,9 @@
     }
 
     button,
-    .file-button {
+    .file-button,
+    select,
+    input[type="text"] {
       border: 1px solid var(--line);
       border-radius: 6px;
       background: var(--panel);
@@ -90,6 +108,14 @@
       clip: rect(0 0 0 0);
     }
 
+    .export-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
     .status {
       border: 1px solid var(--line);
       border-radius: 6px;
@@ -101,14 +127,16 @@
 
     .workspace {
       min-height: 0;
+      min-width: 0;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 220px;
-      gap: 12px;
+      grid-template-columns: minmax(0, 1fr) 12px minmax(280px, var(--side-panel-width));
+      gap: 0;
     }
 
     .canvas-wrap,
-    .preview {
+    .side-panel {
       min-height: 0;
+      min-width: 0;
       border: 1px solid var(--line);
       border-radius: 6px;
       background: var(--panel);
@@ -116,30 +144,114 @@
     }
 
     .canvas-wrap {
-      position: relative;
       display: grid;
+      margin-right: 6px;
+    }
+
+    .panel-resizer {
+      position: relative;
+      min-width: 12px;
+      cursor: col-resize;
+      touch-action: none;
+    }
+
+    .panel-resizer::before {
+      content: "";
+      position: absolute;
+      inset-block: 8px;
+      inset-inline: 5px;
+      border-left: 1px solid var(--line);
+    }
+
+    .panel-resizer:hover::before,
+    body.resizing-panel .panel-resizer::before {
+      border-color: var(--accent);
     }
 
     canvas {
       width: 100%;
       height: 100%;
       min-height: 420px;
+      min-width: 0;
       display: block;
       background: var(--canvas);
       cursor: crosshair;
     }
 
-    .preview {
-      padding: 10px;
+    .side-panel {
+      margin-left: 6px;
+      padding: 10px 16px 10px 10px;
       display: grid;
-      grid-template-rows: auto 1fr;
+      align-content: start;
+      gap: 14px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-gutter: stable;
+    }
+
+    .panel-section {
+      display: grid;
       gap: 10px;
     }
 
-    .preview h2 {
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+    }
+
+    .panel-section:first-child .section-title {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    h2 {
       margin: 0;
       font-size: 15px;
       font-weight: 650;
+    }
+
+    .slot-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .slot-tab {
+      display: grid;
+      gap: 2px;
+      min-height: 50px;
+      text-align: left;
+    }
+
+    .slot-tab.active {
+      border-color: var(--accent);
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+
+    .slot-name {
+      font-weight: 650;
+    }
+
+    .slot-state {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .slot-tab.done .slot-state {
+      color: var(--ok);
+    }
+
+    .preset-box {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
     }
 
     .preview-box {
@@ -153,6 +265,61 @@
       aspect-ratio: 500 / 653;
       border: 1px solid var(--line);
       background: var(--canvas);
+      object-fit: contain;
+    }
+
+    .control-row {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .range-row {
+      grid-template-columns: 72px 1fr 48px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    input[type="text"] {
+      min-width: 0;
+      width: 100%;
+      cursor: text;
+    }
+
+    .range-value {
+      justify-self: end;
+      min-width: 44px;
+      text-align: right;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .sheet-box {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--canvas);
+      padding: 8px;
+      display: grid;
+      place-items: center;
+      min-height: 180px;
+    }
+
+    #sheet-preview {
+      max-width: 100%;
+      max-height: 260px;
+      background: white;
       object-fit: contain;
     }
 
@@ -172,10 +339,12 @@
         grid-template-rows: minmax(420px, 1fr) auto;
       }
 
-      .preview {
-        grid-template-columns: 1fr auto;
-        grid-template-rows: auto;
-        align-items: start;
+      .panel-resizer {
+        display: none;
+      }
+
+      .side-panel {
+        margin-left: 0;
       }
 
       canvas {
@@ -189,22 +358,100 @@
     <div class="toolbar">
       <label class="file-button" for="file">Open Photo</label>
       <input id="file" type="file" accept="image/*">
-      <button id="reset" type="button" disabled>Reset Clicks</button>
-      <button id="download" class="primary" type="button" disabled>Download</button>
+      <button id="undo-point" type="button" disabled>Undo Point</button>
+      <button id="recrop" type="button" disabled>Adjust Crop</button>
+      <button id="clear-active" type="button" disabled>Clear Active</button>
+      <label class="export-control" for="export-mode">
+        JPEG export
+        <select id="export-mode">
+          <option value="official" selected>Official: max 250 KB</option>
+          <option value="original">Original pixels, no limits</option>
+        </select>
+      </label>
+      <button id="download" class="primary" type="button" disabled>Download Active</button>
     </div>
 
-    <div id="status" class="status">Open a portrait photo to begin.</div>
+    <div id="status" class="status">Open a portrait photo in slot A to begin.</div>
 
     <section class="workspace">
       <div class="canvas-wrap">
         <canvas id="canvas"></canvas>
       </div>
-      <aside class="preview">
-        <h2>Passport Photo</h2>
-        <div class="preview-box">
-          <img id="result" alt="">
-        </div>
-        <div class="hint">Output size: 500 x 653 pixels</div>
+
+      <div id="panel-resizer" class="panel-resizer" role="separator" aria-label="Resize side panel"></div>
+
+      <aside class="side-panel">
+        <section class="panel-section">
+          <div class="section-title">
+            <h2>Photos</h2>
+          </div>
+          <div class="slot-tabs">
+            <button id="slot-a" class="slot-tab active" type="button">
+              <span class="slot-name">Photo A</span>
+              <span id="slot-a-state" class="slot-state">Empty</span>
+            </button>
+            <button id="slot-b" class="slot-tab" type="button">
+              <span class="slot-name">Photo B</span>
+              <span id="slot-b-state" class="slot-state">Empty</span>
+            </button>
+          </div>
+          <div class="preset-box">
+            Finland passport photo: 36 x 47 mm, crown-to-chin 32-36 mm, centred face.
+          </div>
+        </section>
+
+        <section class="panel-section">
+          <div class="section-title">
+            <h2>Active Output</h2>
+          </div>
+          <div class="preview-box">
+            <img id="result" alt="">
+          </div>
+          <div id="output-info" class="hint">Output: JPEG, 500 x 653 px, max 250 KB</div>
+        </section>
+
+        <section class="panel-section">
+          <div class="section-title">
+            <h2>Adjust</h2>
+          </div>
+          <label class="control-row range-row" for="brightness">
+            Bright
+            <input id="brightness" type="range" min="70" max="130" value="100" disabled>
+            <span id="brightness-value" class="range-value">100%</span>
+          </label>
+          <label class="control-row range-row" for="contrast">
+            Contrast
+            <input id="contrast" type="range" min="70" max="130" value="100" disabled>
+            <span id="contrast-value" class="range-value">100%</span>
+          </label>
+          <button id="reset-adjustments" type="button" disabled>Reset Adjustments</button>
+        </section>
+
+        <section class="panel-section">
+          <div class="section-title">
+            <h2>Print Layout</h2>
+          </div>
+          <label class="control-row" for="paper-size">
+            Paper
+            <select id="paper-size">
+              <option value="9x13">9 x 13 cm (3.5 x 5 inch)</option>
+              <option value="10x15" selected>10 x 15 cm (4 x 6 inch)</option>
+              <option value="13x18">13 x 18 cm (5 x 7 inch)</option>
+              <option value="single">Single photo</option>
+            </select>
+          </label>
+          <label class="control-row" for="sheet-name">
+            Name
+            <input id="sheet-name" type="text">
+          </label>
+          <div class="sheet-box">
+            <img id="sheet-preview" alt="">
+          </div>
+          <div id="layout-info" class="hint">Finish Photo A, or Photo A and B, to create a print sheet.</div>
+          <div class="button-row">
+            <button id="download-sheet" type="button" disabled>Download Print Sheet</button>
+          </div>
+        </section>
       </aside>
     </section>
   </main>
@@ -214,144 +461,174 @@
 
     const PHOTO_WIDTH = 500;
     const PHOTO_HEIGHT = 653;
-    const ABOVE_HEAD = 70;
-    const HEAD_HEIGHT = 473;
-    const STEPS = [
-      "Open a portrait photo to begin.",
-      "Click the center of one eye.",
-      "Click the center of the other eye.",
-      "Click the top of the head.",
-      "Click the bottom of the chin."
-    ];
+    const PHOTO_WIDTH_MM = 36;
+    const PHOTO_HEIGHT_MM = 47;
+    const PRINT_DPI = 300;
+    const ABOVE_CROWN = 70;
+    const FACE_HEIGHT = 473;
+    const STORAGE_KEY = "passportgen.workflow.v2";
+    const PANEL_WIDTH_KEY = "passportgen.sidePanelWidth.v1";
+    const PAPER_SIZES = {
+      "9x13": { label: "9 x 13 cm", widthMm: 90, heightMm: 130 },
+      "10x15": { label: "10 x 15 cm", widthMm: 100, heightMm: 150 },
+      "13x18": { label: "13 x 18 cm", widthMm: 130, heightMm: 180 },
+      single: { label: "Single photo", widthMm: PHOTO_WIDTH_MM, heightMm: PHOTO_HEIGHT_MM }
+    };
 
     const fileInput = document.getElementById("file");
-    const resetButton = document.getElementById("reset");
+    const undoPointButton = document.getElementById("undo-point");
+    const recropButton = document.getElementById("recrop");
+    const clearActiveButton = document.getElementById("clear-active");
+    const exportModeSelect = document.getElementById("export-mode");
     const downloadButton = document.getElementById("download");
+    const paperSizeSelect = document.getElementById("paper-size");
+    const sheetNameInput = document.getElementById("sheet-name");
+    const sheetPreview = document.getElementById("sheet-preview");
+    const layoutInfo = document.getElementById("layout-info");
+    const downloadSheetButton = document.getElementById("download-sheet");
+    const brightnessInput = document.getElementById("brightness");
+    const contrastInput = document.getElementById("contrast");
+    const brightnessValue = document.getElementById("brightness-value");
+    const contrastValue = document.getElementById("contrast-value");
+    const resetAdjustmentsButton = document.getElementById("reset-adjustments");
+    const slotButtons = [
+      document.getElementById("slot-a"),
+      document.getElementById("slot-b")
+    ];
+    const slotStateEls = [
+      document.getElementById("slot-a-state"),
+      document.getElementById("slot-b-state")
+    ];
     const statusEl = document.getElementById("status");
+    const panelResizer = document.getElementById("panel-resizer");
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
     const resultImg = document.getElementById("result");
+    const outputInfo = document.getElementById("output-info");
 
-    let originalImage = null;
+    const JPEG_MIME_TYPE = "image/jpeg";
+    const MAX_OFFICIAL_BYTES = 250 * 1024;
+
+    let activeSlotIndex = 0;
+    let slots = [createSlot("A"), createSlot("B")];
     let workingCanvas = document.createElement("canvas");
-    let clicks = [];
-    let eyeLeft = null;
-    let eyeRight = null;
+    let displayPoints = [];
     let resultUrl = "";
-    let outputName = "passport_photo.jpg";
+    let sheetUrl = "";
     let view = { scale: 1, offsetX: 0, offsetY: 0 };
+    let restoring = false;
 
-    function setStatus(text) {
-      statusEl.textContent = text;
-    }
+    sheetNameInput.value = getDefaultSheetName();
 
-    function setStep(step) {
-      setStatus(`Step ${step}/4: ${STEPS[step]}`);
-    }
-
-    function resizeCanvas() {
-      const rect = canvas.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = Math.max(1, Math.round(rect.width * dpr));
-      canvas.height = Math.max(1, Math.round(rect.height * dpr));
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      draw();
-    }
-
-    function draw() {
-      const rect = canvas.getBoundingClientRect();
-      ctx.clearRect(0, 0, rect.width, rect.height);
-      ctx.fillStyle = getComputedStyle(document.documentElement)
-        .getPropertyValue("--canvas").trim();
-      ctx.fillRect(0, 0, rect.width, rect.height);
-
-      if (!workingCanvas.width || !workingCanvas.height) {
-        return;
-      }
-
-      const scale = Math.min(
-        rect.width / workingCanvas.width,
-        rect.height / workingCanvas.height
-      );
-      const drawWidth = workingCanvas.width * scale;
-      const drawHeight = workingCanvas.height * scale;
-      view = {
-        scale,
-        offsetX: (rect.width - drawWidth) / 2,
-        offsetY: (rect.height - drawHeight) / 2
+    function createSlot(label) {
+      return {
+        label,
+        rawDataUrl: "",
+        name: "",
+        outputName: `photo_${label.toLowerCase()}_passport.jpg`,
+        image: null,
+        rawCanvas: null,
+        rotatedCanvas: null,
+        rotatedEyePoints: [],
+        eyePoints: [],
+        cropPoints: [],
+        brightness: 100,
+        contrast: 100,
+        baseCanvases: null,
+        resultCanvases: null,
+        resultUrl: ""
       };
+    }
 
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = "high";
-      ctx.drawImage(workingCanvas, view.offsetX, view.offsetY, drawWidth, drawHeight);
+    function getActiveSlot() {
+      return slots[activeSlotIndex];
+    }
 
-      ctx.fillStyle = "#ffcc00";
-      for (const point of clicks) {
-        ctx.beginPath();
-        ctx.arc(
-          view.offsetX + point.x * view.scale,
-          view.offsetY + point.y * view.scale,
-          4,
-          0,
-          Math.PI * 2
-        );
-        ctx.fill();
+    function clonePoint(point) {
+      return { x: point.x, y: point.y };
+    }
+
+    function getSlotState(slot) {
+      if (!slot.rawDataUrl) {
+        return "Empty";
+      }
+      if (slot.resultCanvases) {
+        return "Ready";
+      }
+      if (slot.eyePoints.length < 2) {
+        return `${slot.eyePoints.length}/2 eyes`;
+      }
+      return `${slot.cropPoints.length}/2 crop`;
+    }
+
+    function getDataUrlByteSize(dataUrl) {
+      const base64 = dataUrl.split(",")[1] || "";
+      const padding = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
+      return Math.floor(base64.length * 3 / 4) - padding;
+    }
+
+    function formatKilobytes(bytes) {
+      return `${Math.ceil(bytes / 1024)} KB`;
+    }
+
+    function mmToPixels(mm) {
+      return Math.round(mm / 25.4 * PRINT_DPI);
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function setSidePanelWidth(width) {
+      const workspace = document.querySelector(".workspace");
+      const rect = workspace.getBoundingClientRect();
+      const maxWidth = Math.max(280, Math.min(760, rect.width - 320));
+      const clampedWidth = clamp(Math.round(width), 280, maxWidth);
+      document.documentElement.style.setProperty("--side-panel-width", `${clampedWidth}px`);
+      return clampedWidth;
+    }
+
+    function restoreSidePanelWidth() {
+      const savedWidth = Number(localStorage.getItem(PANEL_WIDTH_KEY));
+      if (savedWidth) {
+        setSidePanelWidth(savedWidth);
       }
     }
 
-    function canvasToImagePoint(event) {
-      const rect = canvas.getBoundingClientRect();
-      const x = (event.clientX - rect.left - view.offsetX) / view.scale;
-      const y = (event.clientY - rect.top - view.offsetY) / view.scale;
-
-      if (
-        x < 0 ||
-        y < 0 ||
-        x >= workingCanvas.width ||
-        y >= workingCanvas.height
-      ) {
-        return null;
-      }
-
-      return { x, y };
+    function pluralize(count, singular, plural = `${singular}s`) {
+      return count === 1 ? singular : plural;
     }
 
-    function loadImage(file) {
-      const reader = new FileReader();
-      reader.onload = () => {
+    function getDefaultSheetName(date = new Date()) {
+      const pad = (value) => String(value).padStart(2, "0");
+      const timestamp =
+        `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
+        `${pad(date.getHours())}.${pad(date.getMinutes())}`;
+      return `Finnish passport photo to print ${timestamp}.jpg`;
+    }
+
+    function getPrintableSheetName() {
+      const trimmedName = sheetNameInput.value.trim();
+      const name = (trimmedName || getDefaultSheetName()).replace(/[\\/:*?"<>|]+/g, "-");
+      return /\.jpe?g$/i.test(name) ? name : `${name.replace(/\.[^.]+$/, "")}.jpg`;
+    }
+
+    function createCanvasFromImage(image) {
+      const imageCanvas = document.createElement("canvas");
+      imageCanvas.width = image.naturalWidth;
+      imageCanvas.height = image.naturalHeight;
+      const imageCtx = imageCanvas.getContext("2d");
+      imageCtx.drawImage(image, 0, 0);
+      return imageCanvas;
+    }
+
+    function loadImageFromDataUrl(dataUrl) {
+      return new Promise((resolve, reject) => {
         const image = new Image();
-        image.onload = () => {
-          originalImage = image;
-          outputName = file.name.replace(/\.[^.]+$/, "") + "_passport.jpg";
-          resetWorkingImage();
-          resetButton.disabled = false;
-          downloadButton.disabled = true;
-          resultImg.removeAttribute("src");
-          setStep(1);
-        };
-        image.onerror = () => setStatus("Could not open the selected image.");
-        image.src = reader.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function resetWorkingImage() {
-      if (!originalImage) {
-        return;
-      }
-      workingCanvas = document.createElement("canvas");
-      workingCanvas.width = originalImage.naturalWidth;
-      workingCanvas.height = originalImage.naturalHeight;
-      const workingCtx = workingCanvas.getContext("2d");
-      workingCtx.drawImage(originalImage, 0, 0);
-      clicks = [];
-      eyeLeft = null;
-      eyeRight = null;
-      resultUrl = "";
-      downloadButton.disabled = true;
-      resultImg.removeAttribute("src");
-      setStep(1);
-      draw();
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = dataUrl;
+      });
     }
 
     function rotatePoint(point, width, height, angle) {
@@ -377,21 +654,22 @@
       return { x: rotated.x - minX, y: rotated.y - minY };
     }
 
-    function straightenImage() {
-      eyeLeft = clicks[0];
-      eyeRight = clicks[1];
+    function updateSlotRotation(slot) {
+      if (!slot.rawCanvas || slot.eyePoints.length < 2) {
+        slot.rotatedCanvas = null;
+        slot.rotatedEyePoints = [];
+        return true;
+      }
+
+      const [eyeLeft, eyeRight] = slot.eyePoints;
       const eyeDx = eyeRight.x - eyeLeft.x;
       const eyeDy = eyeRight.y - eyeLeft.y;
-
       if (eyeDx === 0 && eyeDy === 0) {
-        clicks.pop();
-        setStatus("The two eye clicks must be different points.");
-        draw();
         return false;
       }
 
       const angle = -Math.atan2(eyeDy, eyeDx);
-      const source = workingCanvas;
+      const source = slot.rawCanvas;
       const width = source.width;
       const height = source.height;
       const sin = Math.abs(Math.sin(angle));
@@ -407,90 +685,651 @@
       rotatedCtx.translate(rotatedWidth / 2, rotatedHeight / 2);
       rotatedCtx.rotate(angle);
       rotatedCtx.drawImage(source, -width / 2, -height / 2);
-
-      workingCanvas = rotatedCanvas;
-      eyeLeft = rotatePoint(eyeLeft, width, height, angle);
-      eyeRight = rotatePoint(eyeRight, width, height, angle);
-      clicks = [eyeLeft, eyeRight];
-      draw();
+      slot.rotatedCanvas = rotatedCanvas;
+      slot.rotatedEyePoints = [
+        rotatePoint(eyeLeft, width, height, angle),
+        rotatePoint(eyeRight, width, height, angle)
+      ];
       return true;
     }
 
-    function cropPassportPhoto() {
-      const top = clicks[2];
-      const bottom = clicks[3];
-      const faceHeight = bottom.y - top.y;
+    function createFramedCanvas(source, sourceX, sourceY, sourceWidth, sourceHeight, outputWidth, outputHeight) {
+      const framedCanvas = document.createElement("canvas");
+      framedCanvas.width = outputWidth;
+      framedCanvas.height = outputHeight;
+      const framedCtx = framedCanvas.getContext("2d");
+      framedCtx.fillStyle = "white";
+      framedCtx.fillRect(0, 0, outputWidth, outputHeight);
+      framedCtx.imageSmoothingEnabled = true;
+      framedCtx.imageSmoothingQuality = "high";
+      framedCtx.drawImage(
+        source,
+        sourceX,
+        sourceY,
+        sourceWidth,
+        sourceHeight,
+        0,
+        0,
+        outputWidth,
+        outputHeight
+      );
+      return framedCanvas;
+    }
 
-      if (faceHeight <= 0) {
-        clicks.pop();
-        setStatus("The bottom of the chin must be below the top of the head.");
-        draw();
+    function createAdjustedCanvas(slot, sourceCanvas) {
+      const adjustedCanvas = document.createElement("canvas");
+      adjustedCanvas.width = sourceCanvas.width;
+      adjustedCanvas.height = sourceCanvas.height;
+      const adjustedCtx = adjustedCanvas.getContext("2d");
+      adjustedCtx.fillStyle = "white";
+      adjustedCtx.fillRect(0, 0, adjustedCanvas.width, adjustedCanvas.height);
+      adjustedCtx.filter = `brightness(${slot.brightness}%) contrast(${slot.contrast}%)`;
+      adjustedCtx.drawImage(sourceCanvas, 0, 0);
+      adjustedCtx.filter = "none";
+      return adjustedCanvas;
+    }
+
+    function createMaximumQualityJpeg(canvasToEncode) {
+      const url = canvasToEncode.toDataURL(JPEG_MIME_TYPE, 1);
+      const bytes = getDataUrlByteSize(url);
+      return {
+        url,
+        bytes,
+        quality: 1,
+        sizeLimited: false,
+        withinLimit: bytes <= MAX_OFFICIAL_BYTES
+      };
+    }
+
+    function createOfficialJpeg(canvasToEncode) {
+      let url = canvasToEncode.toDataURL(JPEG_MIME_TYPE, 1);
+      let bytes = getDataUrlByteSize(url);
+
+      if (bytes <= MAX_OFFICIAL_BYTES) {
+        return { url, bytes, quality: 1, sizeLimited: false, withinLimit: true };
+      }
+
+      let bestUrl = "";
+      let bestBytes = 0;
+      let bestQuality = 0.01;
+      let low = 0.01;
+      let high = 1;
+
+      for (let i = 0; i < 14; i += 1) {
+        const quality = (low + high) / 2;
+        url = canvasToEncode.toDataURL(JPEG_MIME_TYPE, quality);
+        bytes = getDataUrlByteSize(url);
+        if (bytes <= MAX_OFFICIAL_BYTES) {
+          bestUrl = url;
+          bestBytes = bytes;
+          bestQuality = quality;
+          low = quality;
+        } else {
+          high = quality;
+        }
+      }
+
+      if (!bestUrl) {
+        bestUrl = canvasToEncode.toDataURL(JPEG_MIME_TYPE, bestQuality);
+        bestBytes = getDataUrlByteSize(bestUrl);
+      }
+
+      return {
+        url: bestUrl,
+        bytes: bestBytes,
+        quality: bestQuality,
+        sizeLimited: true,
+        withinLimit: bestBytes <= MAX_OFFICIAL_BYTES
+      };
+    }
+
+    function createExportJpeg(canvasToEncode) {
+      if (exportModeSelect.value === "original") {
+        return createMaximumQualityJpeg(canvasToEncode);
+      }
+      return createOfficialJpeg(canvasToEncode);
+    }
+
+    function getExportCanvas(slot) {
+      if (!slot.resultCanvases) {
+        return null;
+      }
+      return exportModeSelect.value === "original"
+        ? slot.resultCanvases.original
+        : slot.resultCanvases.official;
+    }
+
+    function setOutputInfo(exportResult) {
+      if (!exportResult) {
+        outputInfo.textContent = "Output: JPEG, 500 x 653 px, max 250 KB";
         return;
       }
 
-      const factor = HEAD_HEIGHT / faceHeight;
+      if (exportModeSelect.value === "original") {
+        outputInfo.textContent =
+          `Output: JPEG, ${exportResult.width} x ${exportResult.height} px, ` +
+          `${formatKilobytes(exportResult.bytes)}. Official pixel and file-size limits not enforced.`;
+        return;
+      }
+
+      if (!exportResult.withinLimit) {
+        outputInfo.textContent =
+          `Output: JPEG, 500 x 653 px, ${formatKilobytes(exportResult.bytes)}. ` +
+          "Could not fit under 250 KB.";
+        return;
+      }
+
+      const qualityText = exportResult.sizeLimited
+        ? `compressed to fit, quality ${Math.round(exportResult.quality * 100)}%`
+        : "no extra compression needed";
+      outputInfo.textContent =
+        `Output: JPEG, 500 x 653 px, ${formatKilobytes(exportResult.bytes)} ` +
+        `of 250 KB max (${qualityText})`;
+    }
+
+    function generateSlotOutputs(slot) {
+      if (!slot.rotatedCanvas || slot.rotatedEyePoints.length < 2 || slot.cropPoints.length < 2) {
+        return null;
+      }
+
+      const [top, bottom] = slot.cropPoints;
+      const faceHeight = bottom.y - top.y;
+      if (faceHeight <= 0) {
+        slot.cropPoints.pop();
+        setStatus("The bottom of the chin must be below the crown of the head.");
+        return null;
+      }
+
+      const factor = FACE_HEIGHT / faceHeight;
       const scaledCanvas = document.createElement("canvas");
-      scaledCanvas.width = Math.max(1, Math.round(workingCanvas.width * factor));
-      scaledCanvas.height = Math.max(1, Math.round(workingCanvas.height * factor));
+      scaledCanvas.width = Math.max(1, Math.round(slot.rotatedCanvas.width * factor));
+      scaledCanvas.height = Math.max(1, Math.round(slot.rotatedCanvas.height * factor));
       const scaledCtx = scaledCanvas.getContext("2d");
       scaledCtx.imageSmoothingEnabled = true;
       scaledCtx.imageSmoothingQuality = "high";
-      scaledCtx.drawImage(workingCanvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
+      scaledCtx.drawImage(slot.rotatedCanvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
 
-      const cropY = Math.round(factor * top.y - ABOVE_HEAD);
-      const centerX = factor * (eyeLeft.x + eyeRight.x) / 2;
+      const cropY = Math.round(factor * top.y - ABOVE_CROWN);
+      const centerX = factor * (slot.rotatedEyePoints[0].x + slot.rotatedEyePoints[1].x) / 2;
       const cropX = Math.round(centerX - PHOTO_WIDTH / 2);
-
-      const resultCanvas = document.createElement("canvas");
-      resultCanvas.width = PHOTO_WIDTH;
-      resultCanvas.height = PHOTO_HEIGHT;
-      const resultCtx = resultCanvas.getContext("2d");
-      resultCtx.fillStyle = "white";
-      resultCtx.fillRect(0, 0, PHOTO_WIDTH, PHOTO_HEIGHT);
-      resultCtx.drawImage(
+      const officialCanvas = createFramedCanvas(
         scaledCanvas,
         cropX,
         cropY,
         PHOTO_WIDTH,
         PHOTO_HEIGHT,
-        0,
-        0,
         PHOTO_WIDTH,
         PHOTO_HEIGHT
       );
 
-      workingCanvas = resultCanvas;
-      clicks = [];
-      resultUrl = resultCanvas.toDataURL("image/jpeg", 0.95);
+      const originalWidth = Math.max(1, Math.round(PHOTO_WIDTH / factor));
+      const originalHeight = Math.max(1, Math.round(PHOTO_HEIGHT / factor));
+      const originalCropWidth = PHOTO_WIDTH / factor;
+      const originalCropHeight = PHOTO_HEIGHT / factor;
+      const originalCropX =
+        (slot.rotatedEyePoints[0].x + slot.rotatedEyePoints[1].x) / 2 - originalCropWidth / 2;
+      const originalCropY = top.y - ABOVE_CROWN / factor;
+      const originalCanvas = createFramedCanvas(
+        slot.rotatedCanvas,
+        originalCropX,
+        originalCropY,
+        originalCropWidth,
+        originalCropHeight,
+        originalWidth,
+        originalHeight
+      );
+
+      slot.baseCanvases = {
+        official: officialCanvas,
+        original: originalCanvas
+      };
+      refreshSlotAdjustments(slot);
+      return slot.resultCanvases;
+    }
+
+    function refreshSlotAdjustments(slot) {
+      if (!slot.baseCanvases) {
+        slot.resultCanvases = null;
+        slot.resultUrl = "";
+        return null;
+      }
+      slot.resultCanvases = {
+        official: createAdjustedCanvas(slot, slot.baseCanvases.official),
+        original: createAdjustedCanvas(slot, slot.baseCanvases.original)
+      };
+      return slot.resultCanvases;
+    }
+
+    function updateActiveExport() {
+      const slot = getActiveSlot();
+      const exportCanvas = getExportCanvas(slot);
+      if (!exportCanvas) {
+        resultUrl = "";
+        resultImg.removeAttribute("src");
+        downloadButton.disabled = true;
+        setOutputInfo(null);
+        return null;
+      }
+
+      const exportResult = createExportJpeg(exportCanvas);
+      exportResult.width = exportCanvas.width;
+      exportResult.height = exportCanvas.height;
+      slot.resultUrl = exportResult.url;
+      resultUrl = exportResult.url;
       resultImg.src = resultUrl;
-      downloadButton.disabled = false;
-      setStatus("Done. Download the generated passport photo.");
+      downloadButton.disabled =
+        exportModeSelect.value === "official" && !exportResult.withinLimit;
+      setOutputInfo(exportResult);
+      return exportResult;
+    }
+
+    function draw() {
+      const rect = canvas.getBoundingClientRect();
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      ctx.fillStyle = getComputedStyle(document.documentElement)
+        .getPropertyValue("--canvas").trim();
+      ctx.fillRect(0, 0, rect.width, rect.height);
+
+      if (!workingCanvas.width || !workingCanvas.height) {
+        return;
+      }
+
+      const scale = Math.min(rect.width / workingCanvas.width, rect.height / workingCanvas.height);
+      const drawWidth = workingCanvas.width * scale;
+      const drawHeight = workingCanvas.height * scale;
+      view = {
+        scale,
+        offsetX: (rect.width - drawWidth) / 2,
+        offsetY: (rect.height - drawHeight) / 2
+      };
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(workingCanvas, view.offsetX, view.offsetY, drawWidth, drawHeight);
+
+      ctx.fillStyle = "#ffcc00";
+      for (const point of displayPoints) {
+        ctx.beginPath();
+        ctx.arc(
+          view.offsetX + point.x * view.scale,
+          view.offsetY + point.y * view.scale,
+          4,
+          0,
+          Math.PI * 2
+        );
+        ctx.fill();
+      }
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.max(1, Math.round(rect.width * dpr));
+      canvas.height = Math.max(1, Math.round(rect.height * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       draw();
     }
 
-    fileInput.addEventListener("change", () => {
-      const file = fileInput.files && fileInput.files[0];
-      if (file) {
-        loadImage(file);
-      }
-    });
-
-    resetButton.addEventListener("click", resetWorkingImage);
-
-    downloadButton.addEventListener("click", () => {
-      if (!resultUrl) {
+    function handlePanelResizeStart(event) {
+      if (window.matchMedia("(max-width: 760px)").matches) {
         return;
       }
-      const link = document.createElement("a");
-      link.href = resultUrl;
-      link.download = outputName;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    });
+      event.preventDefault();
+      document.body.classList.add("resizing-panel");
+      panelResizer.setPointerCapture(event.pointerId);
 
-    canvas.addEventListener("click", (event) => {
-      if (!workingCanvas.width || !workingCanvas.height || resultUrl) {
+      const onPointerMove = (moveEvent) => {
+        const workspaceRect = document.querySelector(".workspace").getBoundingClientRect();
+        const width = workspaceRect.right - moveEvent.clientX - 6;
+        const clampedWidth = setSidePanelWidth(width);
+        localStorage.setItem(PANEL_WIDTH_KEY, String(clampedWidth));
+        resizeCanvas();
+      };
+
+      const onPointerUp = (upEvent) => {
+        document.body.classList.remove("resizing-panel");
+        panelResizer.releasePointerCapture(upEvent.pointerId);
+        panelResizer.removeEventListener("pointermove", onPointerMove);
+        panelResizer.removeEventListener("pointerup", onPointerUp);
+        panelResizer.removeEventListener("pointercancel", onPointerUp);
+      };
+
+      panelResizer.addEventListener("pointermove", onPointerMove);
+      panelResizer.addEventListener("pointerup", onPointerUp);
+      panelResizer.addEventListener("pointercancel", onPointerUp);
+    }
+
+    function canvasToImagePoint(event) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (event.clientX - rect.left - view.offsetX) / view.scale;
+      const y = (event.clientY - rect.top - view.offsetY) / view.scale;
+      if (x < 0 || y < 0 || x >= workingCanvas.width || y >= workingCanvas.height) {
+        return null;
+      }
+      return { x, y };
+    }
+
+    function setStatus(text) {
+      statusEl.textContent = text;
+    }
+
+    function getNextInstruction(slot) {
+      if (!slot.rawDataUrl) {
+        return `Open a portrait photo in slot ${slot.label} to begin.`;
+      }
+      if (slot.resultCanvases) {
+        return `Photo ${slot.label} is ready. Adjust it, switch slots, or download the layout.`;
+      }
+      if (slot.eyePoints.length === 0) {
+        return `Photo ${slot.label}: click the center of one eye.`;
+      }
+      if (slot.eyePoints.length === 1) {
+        return `Photo ${slot.label}: click the center of the other eye.`;
+      }
+      if (slot.cropPoints.length === 0) {
+        return `Photo ${slot.label}: click the crown of the head, excluding hair.`;
+      }
+      return `Photo ${slot.label}: click the bottom of the chin.`;
+    }
+
+    function updateAdjustmentControls() {
+      const slot = getActiveSlot();
+      const enabled = Boolean(slot.resultCanvases);
+      brightnessInput.disabled = !enabled;
+      contrastInput.disabled = !enabled;
+      resetAdjustmentsButton.disabled = !enabled;
+      brightnessInput.value = String(slot.brightness);
+      contrastInput.value = String(slot.contrast);
+      brightnessValue.textContent = `${slot.brightness}%`;
+      contrastValue.textContent = `${slot.contrast}%`;
+    }
+
+    function updateSlotTabs() {
+      slots.forEach((slot, index) => {
+        slotButtons[index].classList.toggle("active", index === activeSlotIndex);
+        slotButtons[index].classList.toggle("done", Boolean(slot.resultCanvases));
+        slotStateEls[index].textContent = getSlotState(slot);
+      });
+    }
+
+    function renderActiveSlot(options = {}) {
+      const slot = getActiveSlot();
+      updateSlotTabs();
+      updateAdjustmentControls();
+      clearActiveButton.disabled = !slot.rawDataUrl;
+      recropButton.disabled = !slot.resultCanvases;
+
+      if (!slot.rawDataUrl || !slot.rawCanvas) {
+        workingCanvas = document.createElement("canvas");
+        displayPoints = [];
+        updateActiveExport();
+        updatePrintLayout();
+        setStatus(getNextInstruction(slot));
+        draw();
+        return;
+      }
+
+      if (slot.resultCanvases && !options.forceCropView) {
+        workingCanvas = getExportCanvas(slot) || slot.resultCanvases.official;
+        displayPoints = [];
+      } else if (slot.eyePoints.length < 2) {
+        workingCanvas = slot.rawCanvas;
+        displayPoints = slot.eyePoints.map(clonePoint);
+      } else {
+        updateSlotRotation(slot);
+        workingCanvas = slot.rotatedCanvas;
+        displayPoints = [...slot.rotatedEyePoints, ...slot.cropPoints].map(clonePoint);
+      }
+
+      undoPointButton.disabled =
+        !slot.rawDataUrl || Boolean(slot.resultCanvases) ||
+        (slot.eyePoints.length === 0 && slot.cropPoints.length === 0);
+      updateActiveExport();
+      updatePrintLayout();
+      if (!options.keepStatus) {
+        setStatus(getNextInstruction(slot));
+      }
+      draw();
+    }
+
+    function serializeWorkflow() {
+      return {
+        activeSlotIndex,
+        exportMode: exportModeSelect.value,
+        paperSize: paperSizeSelect.value,
+        sheetName: sheetNameInput.value,
+        slots: slots.map((slot) => ({
+          label: slot.label,
+          rawDataUrl: slot.rawDataUrl,
+          name: slot.name,
+          outputName: slot.outputName,
+          eyePoints: slot.eyePoints,
+          cropPoints: slot.cropPoints,
+          brightness: slot.brightness,
+          contrast: slot.contrast
+        }))
+      };
+    }
+
+    function saveWorkflow() {
+      if (restoring) {
+        return;
+      }
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(serializeWorkflow()));
+      } catch (error) {
+        setStatus(
+          "Workflow is too large for browser autosave. Exports still work, but reload restore may be incomplete."
+        );
+      }
+    }
+
+    async function hydrateSlot(slot) {
+      if (!slot.rawDataUrl) {
+        return;
+      }
+      slot.image = await loadImageFromDataUrl(slot.rawDataUrl);
+      slot.rawCanvas = createCanvasFromImage(slot.image);
+      if (slot.eyePoints.length >= 2) {
+        updateSlotRotation(slot);
+      }
+      if (slot.eyePoints.length >= 2 && slot.cropPoints.length >= 2) {
+        generateSlotOutputs(slot);
+      }
+    }
+
+    async function restoreWorkflow() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) {
+        return;
+      }
+
+      try {
+        restoring = true;
+        const parsed = JSON.parse(saved);
+        activeSlotIndex = Number.isInteger(parsed.activeSlotIndex) ? parsed.activeSlotIndex : 0;
+        exportModeSelect.value = parsed.exportMode || "official";
+        paperSizeSelect.value = parsed.paperSize || "10x15";
+        sheetNameInput.value = parsed.sheetName || sheetNameInput.value || getDefaultSheetName();
+        slots = [createSlot("A"), createSlot("B")];
+        (parsed.slots || []).slice(0, 2).forEach((savedSlot, index) => {
+          slots[index] = {
+            ...slots[index],
+            rawDataUrl: savedSlot.rawDataUrl || "",
+            name: savedSlot.name || "",
+            outputName: savedSlot.outputName || `photo_${slots[index].label.toLowerCase()}_passport.jpg`,
+            eyePoints: (savedSlot.eyePoints || []).map(clonePoint),
+            cropPoints: (savedSlot.cropPoints || []).map(clonePoint),
+            brightness: Number(savedSlot.brightness) || 100,
+            contrast: Number(savedSlot.contrast) || 100
+          };
+        });
+        for (const slot of slots) {
+          await hydrateSlot(slot);
+        }
+      } catch (error) {
+        localStorage.removeItem(STORAGE_KEY);
+        slots = [createSlot("A"), createSlot("B")];
+        activeSlotIndex = 0;
+        setStatus("Saved workflow could not be restored, so a fresh workflow was started.");
+      } finally {
+        restoring = false;
+      }
+    }
+
+    function getBestLayout(paper) {
+      if (paperSizeSelect.value === "single") {
+        return {
+          sheetWidthMm: PHOTO_WIDTH_MM,
+          sheetHeightMm: PHOTO_HEIGHT_MM,
+          cellWidthMm: PHOTO_WIDTH_MM,
+          cellHeightMm: PHOTO_HEIGHT_MM,
+          cols: 1,
+          rows: 1,
+          count: 1,
+          rotatePhoto: false
+        };
+      }
+
+      const candidates = [
+        [paper.widthMm, paper.heightMm, PHOTO_WIDTH_MM, PHOTO_HEIGHT_MM, false],
+        [paper.widthMm, paper.heightMm, PHOTO_HEIGHT_MM, PHOTO_WIDTH_MM, true],
+        [paper.heightMm, paper.widthMm, PHOTO_WIDTH_MM, PHOTO_HEIGHT_MM, false],
+        [paper.heightMm, paper.widthMm, PHOTO_HEIGHT_MM, PHOTO_WIDTH_MM, true]
+      ].map(([sheetWidthMm, sheetHeightMm, cellWidthMm, cellHeightMm, rotatePhoto]) => {
+        const cols = Math.floor(sheetWidthMm / cellWidthMm);
+        const rows = Math.floor(sheetHeightMm / cellHeightMm);
+        return {
+          sheetWidthMm,
+          sheetHeightMm,
+          cellWidthMm,
+          cellHeightMm,
+          rotatePhoto,
+          cols,
+          rows,
+          count: cols * rows,
+          leftoverMm: (sheetWidthMm - cols * cellWidthMm) + (sheetHeightMm - rows * cellHeightMm)
+        };
+      });
+
+      return candidates.sort((a, b) => {
+        if (b.count !== a.count) {
+          return b.count - a.count;
+        }
+        if (a.leftoverMm !== b.leftoverMm) {
+          return a.leftoverMm - b.leftoverMm;
+        }
+        return Number(a.rotatePhoto) - Number(b.rotatePhoto);
+      })[0];
+    }
+
+    function drawPhotoInCell(sheetCtx, photoCanvas, x, y, width, height, rotatePhoto, label) {
+      sheetCtx.save();
+      if (rotatePhoto) {
+        sheetCtx.translate(x + width / 2, y + height / 2);
+        sheetCtx.rotate(Math.PI / 2);
+        sheetCtx.drawImage(photoCanvas, -height / 2, -width / 2, height, width);
+      } else {
+        sheetCtx.drawImage(photoCanvas, x, y, width, height);
+      }
+      sheetCtx.restore();
+      sheetCtx.strokeStyle = "#bbbbbb";
+      sheetCtx.lineWidth = 1;
+      sheetCtx.strokeRect(x + 0.5, y + 0.5, width - 1, height - 1);
+
+      if (label) {
+        sheetCtx.fillStyle = "rgba(255, 255, 255, 0.8)";
+        sheetCtx.fillRect(x + 4, y + 4, 22, 18);
+        sheetCtx.fillStyle = "#111111";
+        sheetCtx.font = "bold 13px system-ui, sans-serif";
+        sheetCtx.fillText(label, x + 10, y + 18);
+      }
+    }
+
+    function updatePrintLayout() {
+      const readySlots = slots.filter((slot) => slot.resultCanvases);
+      if (readySlots.length === 0) {
+        sheetUrl = "";
+        sheetPreview.removeAttribute("src");
+        downloadSheetButton.disabled = true;
+        layoutInfo.textContent = "Finish Photo A, or Photo A and B, to create a print sheet.";
+        return;
+      }
+
+      const paper = PAPER_SIZES[paperSizeSelect.value];
+      const layout = getBestLayout(paper);
+      const sheetCanvas = document.createElement("canvas");
+      sheetCanvas.width = mmToPixels(layout.sheetWidthMm);
+      sheetCanvas.height = mmToPixels(layout.sheetHeightMm);
+      const sheetCtx = sheetCanvas.getContext("2d");
+      sheetCtx.fillStyle = "white";
+      sheetCtx.fillRect(0, 0, sheetCanvas.width, sheetCanvas.height);
+
+      const cellWidth = mmToPixels(layout.cellWidthMm);
+      const cellHeight = mmToPixels(layout.cellHeightMm);
+      const usedWidth = cellWidth * layout.cols;
+      const usedHeight = cellHeight * layout.rows;
+      const startX = Math.floor((sheetCanvas.width - usedWidth) / 2);
+      const startY = Math.floor((sheetCanvas.height - usedHeight) / 2);
+
+      for (let row = 0; row < layout.rows; row += 1) {
+        for (let col = 0; col < layout.cols; col += 1) {
+          const index = row * layout.cols + col;
+          const slot = readySlots[index % readySlots.length];
+          drawPhotoInCell(
+            sheetCtx,
+            slot.resultCanvases.official,
+            startX + col * cellWidth,
+            startY + row * cellHeight,
+            cellWidth,
+            cellHeight,
+            layout.rotatePhoto,
+            ""
+          );
+        }
+      }
+
+      sheetUrl = sheetCanvas.toDataURL(JPEG_MIME_TYPE, 0.95);
+      sheetPreview.src = sheetUrl;
+      downloadSheetButton.disabled = false;
+
+      const orientationText = layout.sheetWidthMm > layout.sheetHeightMm
+        ? " Paper is laid out landscape for best fit."
+        : "";
+      const rotationText = layout.rotatePhoto ? " Photo cells are rotated for best fit." : "";
+      const mixText = readySlots.length > 1
+        ? ` ${Math.ceil(layout.count / 2)} of A and ${Math.floor(layout.count / 2)} of B.`
+        : "";
+      layoutInfo.textContent =
+        `${paper.label}: ${layout.cols} x ${layout.rows}, ${layout.count} ` +
+        `${pluralize(layout.count, "photo")} at ${PHOTO_WIDTH_MM} x ${PHOTO_HEIGHT_MM} mm, ` +
+        `rendered at ${PRINT_DPI} DPI.${orientationText}${rotationText}${mixText}`;
+    }
+
+    async function loadPhotoIntoActiveSlot(file) {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const slot = getActiveSlot();
+      const image = await loadImageFromDataUrl(dataUrl);
+      Object.assign(slot, createSlot(slot.label), {
+        rawDataUrl: dataUrl,
+        name: file.name,
+        outputName: file.name.replace(/\.[^.]+$/, "") + `_photo_${slot.label.toLowerCase()}_passport.jpg`,
+        image,
+        rawCanvas: createCanvasFromImage(image)
+      });
+      saveWorkflow();
+      renderActiveSlot();
+    }
+
+    function handleCanvasClick(event) {
+      const slot = getActiveSlot();
+      if (!slot.rawDataUrl || slot.resultCanvases || !workingCanvas.width || !workingCanvas.height) {
         return;
       }
 
@@ -499,23 +1338,155 @@
         return;
       }
 
-      clicks.push(point);
-      if (clicks.length === 1) {
-        setStep(2);
-      } else if (clicks.length === 2) {
-        if (straightenImage()) {
-          setStep(3);
+      if (slot.eyePoints.length < 2) {
+        slot.eyePoints.push(point);
+        if (slot.eyePoints.length === 2 && !updateSlotRotation(slot)) {
+          slot.eyePoints.pop();
+          setStatus("The two eye clicks must be different points.");
         }
-      } else if (clicks.length === 3) {
-        setStep(4);
-      } else if (clicks.length === 4) {
-        cropPassportPhoto();
+      } else if (slot.cropPoints.length < 2) {
+        slot.cropPoints.push(point);
+        if (slot.cropPoints.length === 2) {
+          generateSlotOutputs(slot);
+        }
       }
-      draw();
+
+      saveWorkflow();
+      renderActiveSlot();
+    }
+
+    function undoPoint() {
+      const slot = getActiveSlot();
+      if (slot.resultCanvases) {
+        return;
+      }
+      if (slot.cropPoints.length > 0) {
+        slot.cropPoints.pop();
+      } else if (slot.eyePoints.length > 0) {
+        slot.eyePoints.pop();
+        slot.rotatedCanvas = null;
+        slot.rotatedEyePoints = [];
+      }
+      saveWorkflow();
+      renderActiveSlot();
+    }
+
+    function recropActiveSlot() {
+      const slot = getActiveSlot();
+      if (!slot.resultCanvases) {
+        return;
+      }
+      slot.cropPoints = [];
+      slot.baseCanvases = null;
+      slot.resultCanvases = null;
+      slot.resultUrl = "";
+      saveWorkflow();
+      renderActiveSlot({ forceCropView: true });
+    }
+
+    function clearActiveSlot() {
+      const label = getActiveSlot().label;
+      slots[activeSlotIndex] = createSlot(label);
+      saveWorkflow();
+      renderActiveSlot();
+    }
+
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files && fileInput.files[0];
+      fileInput.value = "";
+      if (!file) {
+        return;
+      }
+      loadPhotoIntoActiveSlot(file).catch(() => {
+        setStatus("Could not open the selected image.");
+      });
     });
 
+    slotButtons.forEach((button, index) => {
+      button.addEventListener("click", () => {
+        activeSlotIndex = index;
+        saveWorkflow();
+        renderActiveSlot();
+      });
+    });
+
+    undoPointButton.addEventListener("click", undoPoint);
+    recropButton.addEventListener("click", recropActiveSlot);
+    clearActiveButton.addEventListener("click", clearActiveSlot);
+
+    brightnessInput.addEventListener("input", () => {
+      const slot = getActiveSlot();
+      slot.brightness = Number(brightnessInput.value);
+      refreshSlotAdjustments(slot);
+      saveWorkflow();
+      renderActiveSlot({ keepStatus: true });
+    });
+
+    contrastInput.addEventListener("input", () => {
+      const slot = getActiveSlot();
+      slot.contrast = Number(contrastInput.value);
+      refreshSlotAdjustments(slot);
+      saveWorkflow();
+      renderActiveSlot({ keepStatus: true });
+    });
+
+    resetAdjustmentsButton.addEventListener("click", () => {
+      const slot = getActiveSlot();
+      slot.brightness = 100;
+      slot.contrast = 100;
+      refreshSlotAdjustments(slot);
+      saveWorkflow();
+      renderActiveSlot({ keepStatus: true });
+      setStatus(`Photo ${slot.label} brightness and contrast reset.`);
+    });
+
+    exportModeSelect.addEventListener("change", () => {
+      saveWorkflow();
+      renderActiveSlot({ keepStatus: true });
+    });
+
+    paperSizeSelect.addEventListener("change", () => {
+      saveWorkflow();
+      updatePrintLayout();
+    });
+
+    sheetNameInput.addEventListener("input", saveWorkflow);
+
+    downloadButton.addEventListener("click", () => {
+      const slot = getActiveSlot();
+      if (!resultUrl) {
+        return;
+      }
+      const link = document.createElement("a");
+      link.href = resultUrl;
+      link.download = slot.outputName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    });
+
+    downloadSheetButton.addEventListener("click", () => {
+      if (!sheetUrl) {
+        return;
+      }
+      const link = document.createElement("a");
+      link.href = sheetUrl;
+      link.download = getPrintableSheetName();
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    });
+
+    canvas.addEventListener("click", handleCanvasClick);
+    panelResizer.addEventListener("pointerdown", handlePanelResizeStart);
     window.addEventListener("resize", resizeCanvas);
-    resizeCanvas();
+
+    (async function init() {
+      restoreSidePanelWidth();
+      await restoreWorkflow();
+      renderActiveSlot();
+      resizeCanvas();
+    })();
   </script>
 </body>
 </html>
