@@ -12,13 +12,20 @@ Open `passportgen.html` in a browser.
 
 ## How To Use
 
-1. Choose **Open Photo** in slot A.
+1. Choose **Open Photo**.
 2. Click the center of one eye, then the center of the other eye.
 3. Click the crown of the head, excluding hair.
 4. Click the bottom of the chin.
-5. Adjust brightness or contrast if needed.
-6. Download the active passport photo, or use **Print Layout** to create a photo
-   sheet.
+5. Choose **JPEG export** format; use "Official" if it is to be uploaded to Poliisi.
+6. **Download Active** (current photo)
+
+### If you want to print a physical photo
+- On the right panel:
+   - You can also create well-layouted passport photo sheet ready to be physically printed
+   - You can  adjust brightness or contrast if needed.
+   - You can choose photo paper size and the photo sheet's file name.
+   - You can mix a maximum of 2 different photos to print on one sheet.
+   - **Download Print Layout**
 
 Photo B can be prepared the same way. When both slots are ready, the print sheet
 alternates photos A and B.
