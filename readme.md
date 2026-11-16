@@ -1,6 +1,7 @@
 # Finnish Passport Photo Adapter
 
-<img width="1598" height="1257" alt="image" src="https://github.com/user-attachments/assets/4ad265ce-2280-489d-905a-2b0f2b1b233b" />
+ <img width="1411" height="1219" alt="Snapshot_2026-11-17_01-37-41" src="https://github.com/user-attachments/assets/00992deb-a72d-429c-832d-51462f9c50bd" />
+
 
 
 Straighten, scale, and crop portraits to meet Finnish passport photo requirements in [Poliisin passikuvaohje](https://poliisi.fi/documents/25235045/31329600/Poliisin-passikuvaohje-2020-FI.pdf/d7709348-8248-09a0-8b74-7526e6ee2a5d?t=1600339651285), then arrange them on a printable photo sheet. 
@@ -38,7 +39,9 @@ Photo B can be prepared the same way. When both slots are ready, the print sheet
 ## Guide Grid
 
 Once all four points are set, the finished photo is shown with the grid from page 3 of the official guide laid over it:
-
+<p align="center">
+<img width="531" height="390" alt="Poliisin passikuvaohje grids" src="https://github.com/user-attachments/assets/71d4b685-f2b9-4f47-a16e-1849732b74ca" />
+</p>
 - **Crown:** the top of the head (without hair) should fall between the two upper horizontal lines, 56-84 px (4-6 mm) from the top edge.
 - **Chin:** the bottom of the chin should fall between the two lower horizontal lines, 96-124 px (7-9 mm) from the bottom edge.
 - **Nose:** the face centre line should fall between the two vertical lines, at most 21 px (1.5 mm) from the middle of the photo.
