@@ -39,9 +39,11 @@ Photo B can be prepared the same way. When both slots are ready, the print sheet
 ## Guide Grid
 
 Once all four points are set, the finished photo is shown with the grid from page 3 of the official guide laid over it:
+
 <p align="center">
 <img width="531" height="390" alt="Poliisin passikuvaohje grids" src="https://github.com/user-attachments/assets/71d4b685-f2b9-4f47-a16e-1849732b74ca" />
 </p>
+
 - **Crown:** the top of the head (without hair) should fall between the two upper horizontal lines, 56-84 px (4-6 mm) from the top edge.
 - **Chin:** the bottom of the chin should fall between the two lower horizontal lines, 96-124 px (7-9 mm) from the bottom edge.
 - **Nose:** the face centre line should fall between the two vertical lines, at most 21 px (1.5 mm) from the middle of the photo.
